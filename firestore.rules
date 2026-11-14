@@ -1,0 +1,350 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedEmail() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidExperienceLevel(level) {
+      return level in ['Beginner', 'Some Basics', 'Intermediate'];
+    }
+
+    function isValidLanguage(lang) {
+      return lang in ['English', 'Hindi', 'Hinglish'];
+    }
+
+    function isValidDifficulty(diff) {
+      return diff in ['beginner', 'intermediate', 'advanced'];
+    }
+
+    function isValidMode(mode) {
+      return mode in ['learn', 'practice', 'quiz'];
+    }
+
+    function isValidTopicSlug(slug) {
+      return slug is string && slug.size() >= 1 && slug.size() <= 80 && slug.matches('^[a-z0-9\\-]+$');
+    }
+
+    function isValidUserProfile(data, uid) {
+      return data.keys().hasAll([
+          'uid',
+          'displayName',
+          'email',
+          'experienceLevel',
+          'preferredLanguage',
+          'learningGoal',
+          'onboardingCompleted',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'uid',
+          'displayName',
+          'email',
+          'experienceLevel',
+          'preferredLanguage',
+          'learningGoal',
+          'onboardingCompleted',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.uid is string &&
+        data.uid == uid &&
+        data.uid == request.auth.uid &&
+        data.displayName is string &&
+        data.displayName.size() >= 1 &&
+        data.displayName.size() <= 80 &&
+        data.email is string &&
+        data.email.size() >= 3 &&
+        data.email.size() <= 200 &&
+        isValidExperienceLevel(data.experienceLevel) &&
+        isValidLanguage(data.preferredLanguage) &&
+        data.learningGoal is string &&
+        data.learningGoal.size() <= 300 &&
+        data.onboardingCompleted is bool &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidLearningSession(data, uid) {
+      return data.keys().hasAll(['uid', 'topicSlug', 'mode', 'startedAt', 'lastActivityAt']) &&
+        data.keys().hasOnly(['uid', 'topicSlug', 'mode', 'startedAt', 'lastActivityAt']) &&
+        data.uid is string &&
+        data.uid == uid &&
+        data.uid == request.auth.uid &&
+        isValidTopicSlug(data.topicSlug) &&
+        isValidMode(data.mode) &&
+        data.startedAt is timestamp &&
+        data.lastActivityAt is timestamp;
+    }
+
+    function isValidPracticeAttempt(data, uid) {
+      return data.keys().hasAll([
+          'uid',
+          'topicSlug',
+          'difficulty',
+          'taskTitle',
+          'taskInstructions',
+          'learnerAnswer',
+          'evaluationResult',
+          'feedback',
+          'hint',
+          'createdAt'
+        ]) &&
+        data.keys().hasOnly([
+          'uid',
+          'topicSlug',
+          'difficulty',
+          'taskTitle',
+          'taskInstructions',
+          'learnerAnswer',
+          'evaluationResult',
+          'feedback',
+          'hint',
+          'createdAt'
+        ]) &&
+        data.uid is string &&
+        data.uid == uid &&
+        data.uid == request.auth.uid &&
+        isValidTopicSlug(data.topicSlug) &&
+        isValidDifficulty(data.difficulty) &&
+        data.taskTitle is string &&
+        data.taskTitle.size() >= 1 &&
+        data.taskTitle.size() <= 200 &&
+        data.taskInstructions is string &&
+        data.taskInstructions.size() >= 1 &&
+        data.taskInstructions.size() <= 2000 &&
+        data.learnerAnswer is string &&
+        data.learnerAnswer.size() >= 1 &&
+        data.learnerAnswer.size() <= 8000 &&
+        data.evaluationResult in ['correct', 'partially_correct', 'incorrect', 'needs_clarification'] &&
+        data.feedback is string &&
+        data.feedback.size() >= 1 &&
+        data.feedback.size() <= 4000 &&
+        data.hint is string &&
+        data.hint.size() <= 1000 &&
+        data.createdAt is timestamp;
+    }
+
+    function isValidQuizAttempt(data, uid) {
+      return data.keys().hasAll([
+          'uid',
+          'quizId',
+          'topicSlug',
+          'difficulty',
+          'questionCount',
+          'correctCount',
+          'scorePercent',
+          'createdAt'
+        ]) &&
+        data.keys().hasOnly([
+          'uid',
+          'quizId',
+          'topicSlug',
+          'difficulty',
+          'questionCount',
+          'correctCount',
+          'scorePercent',
+          'createdAt'
+        ]) &&
+        data.uid is string &&
+        data.uid == uid &&
+        data.uid == request.auth.uid &&
+        isValidId(data.quizId) &&
+        isValidTopicSlug(data.topicSlug) &&
+        isValidDifficulty(data.difficulty) &&
+        data.questionCount is int &&
+        (data.questionCount == 5 || data.questionCount == 10) &&
+        data.correctCount is int &&
+        data.correctCount >= 0 &&
+        data.correctCount <= data.questionCount &&
+        data.scorePercent is int &&
+        data.scorePercent >= 0 &&
+        data.scorePercent <= 100 &&
+        data.createdAt is timestamp;
+    }
+
+    function isValidTopicProgress(data, uid, slug) {
+      return data.keys().hasAll([
+          'uid',
+          'topicSlug',
+          'lessonsViewed',
+          'practiceAttemptsCount',
+          'quizAttemptsCount',
+          'bestScore',
+          'status',
+          'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'uid',
+          'topicSlug',
+          'lessonsViewed',
+          'practiceAttemptsCount',
+          'quizAttemptsCount',
+          'bestScore',
+          'status',
+          'updatedAt'
+        ]) &&
+        data.uid is string &&
+        data.uid == uid &&
+        data.uid == request.auth.uid &&
+        isValidTopicSlug(data.topicSlug) &&
+        data.topicSlug == slug &&
+        data.lessonsViewed is int &&
+        data.lessonsViewed >= 0 &&
+        data.lessonsViewed <= 10000 &&
+        data.practiceAttemptsCount is int &&
+        data.practiceAttemptsCount >= 0 &&
+        data.practiceAttemptsCount <= 10000 &&
+        data.quizAttemptsCount is int &&
+        data.quizAttemptsCount >= 0 &&
+        data.quizAttemptsCount <= 10000 &&
+        data.bestScore is int &&
+        data.bestScore >= 0 &&
+        data.bestScore <= 100 &&
+        data.status in ['not_started', 'in_progress', 'completed'] &&
+        data.updatedAt is timestamp;
+    }
+
+    match /users/{uid} {
+      allow get: if isValidId(uid) && isOwner(uid);
+      allow list: if false;
+      allow create: if isValidId(uid) &&
+        isOwner(uid) &&
+        isVerifiedEmail() &&
+        isValidUserProfile(incoming(), uid) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isValidId(uid) &&
+        isOwner(uid) &&
+        isVerifiedEmail() &&
+        isValidUserProfile(incoming(), uid) &&
+        incoming().uid == existing().uid &&
+        incoming().email == existing().email &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'displayName',
+          'experienceLevel',
+          'preferredLanguage',
+          'learningGoal',
+          'onboardingCompleted',
+          'updatedAt'
+        ]);
+      allow delete: if false;
+
+      match /learningSessions/{sessionId} {
+        allow get: if isValidId(uid) && isValidId(sessionId) && isOwner(uid);
+        allow list: if isOwner(uid) && resource.data.uid == request.auth.uid;
+        allow create: if isValidId(uid) &&
+          isValidId(sessionId) &&
+          isOwner(uid) &&
+          isVerifiedEmail() &&
+          isValidLearningSession(incoming(), uid) &&
+          incoming().startedAt == request.time &&
+          incoming().lastActivityAt == request.time &&
+          exists(/databases/$(database)/documents/users/$(uid));
+        allow update: if isValidId(uid) &&
+          isValidId(sessionId) &&
+          isOwner(uid) &&
+          isVerifiedEmail() &&
+          isValidLearningSession(incoming(), uid) &&
+          incoming().uid == existing().uid &&
+          incoming().startedAt == existing().startedAt &&
+          incoming().lastActivityAt == request.time &&
+          incoming().diff(existing()).affectedKeys().hasOnly(['topicSlug', 'mode', 'lastActivityAt']) &&
+          exists(/databases/$(database)/documents/users/$(uid));
+        allow delete: if false;
+      }
+
+      match /practiceAttempts/{attemptId} {
+        allow get: if isValidId(uid) && isValidId(attemptId) && isOwner(uid);
+        allow list: if isOwner(uid) && resource.data.uid == request.auth.uid;
+        allow create: if isValidId(uid) &&
+          isValidId(attemptId) &&
+          isOwner(uid) &&
+          isVerifiedEmail() &&
+          isValidPracticeAttempt(incoming(), uid) &&
+          incoming().createdAt == request.time &&
+          exists(/databases/$(database)/documents/users/$(uid));
+        allow update: if false;
+        allow delete: if false;
+      }
+
+      match /quizAttempts/{attemptId} {
+        allow get: if isValidId(uid) && isValidId(attemptId) && isOwner(uid);
+        allow list: if isOwner(uid) && resource.data.uid == request.auth.uid;
+        allow create: if isValidId(uid) &&
+          isValidId(attemptId) &&
+          isOwner(uid) &&
+          isVerifiedEmail() &&
+          isValidQuizAttempt(incoming(), uid) &&
+          incoming().createdAt == request.time &&
+          exists(/databases/$(database)/documents/users/$(uid));
+        allow update: if false;
+        allow delete: if false;
+      }
+
+      match /topicProgress/{topicSlug} {
+        allow get: if isValidId(uid) && isValidId(topicSlug) && isOwner(uid);
+        allow list: if isOwner(uid) && resource.data.uid == request.auth.uid;
+        allow create: if isValidId(uid) &&
+          isValidId(topicSlug) &&
+          isOwner(uid) &&
+          isVerifiedEmail() &&
+          isValidTopicProgress(incoming(), uid, topicSlug) &&
+          incoming().updatedAt == request.time &&
+          exists(/databases/$(database)/documents/users/$(uid));
+        allow update: if isValidId(uid) &&
+          isValidId(topicSlug) &&
+          isOwner(uid) &&
+          isVerifiedEmail() &&
+          isValidTopicProgress(incoming(), uid, topicSlug) &&
+          incoming().uid == existing().uid &&
+          incoming().topicSlug == existing().topicSlug &&
+          incoming().updatedAt == request.time &&
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'lessonsViewed',
+            'practiceAttemptsCount',
+            'quizAttemptsCount',
+            'bestScore',
+            'status',
+            'updatedAt'
+          ]) &&
+          exists(/databases/$(database)/documents/users/$(uid));
+        allow delete: if false;
+      }
+    }
+
+    // Server-only quiz answer keys: never readable or writable from client SDKs
+    match /quizAnswerKeys/{quizId} {
+      allow read, write: if false;
+    }
+  }
+}

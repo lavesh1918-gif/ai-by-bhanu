@@ -1,0 +1,6 @@
+{
+  "name": "SmartLearn AI by bhanu",
+  "description": "Your personal AI tutor for learning HTML, CSS, and JavaScript fundamentals. Independent educational capstone prototype under the IIT Patna B3 Capstone Project.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

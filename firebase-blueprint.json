@@ -1,0 +1,325 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Learner profile and personalization preferences for SmartLearn AI.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "email": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 200
+        },
+        "experienceLevel": {
+          "type": "string",
+          "enum": ["Beginner", "Some Basics", "Intermediate"]
+        },
+        "preferredLanguage": {
+          "type": "string",
+          "enum": ["English", "Hindi", "Hinglish"]
+        },
+        "learningGoal": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 300
+        },
+        "onboardingCompleted": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "uid",
+        "displayName",
+        "email",
+        "experienceLevel",
+        "preferredLanguage",
+        "learningGoal",
+        "onboardingCompleted",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "LearningSession": {
+      "title": "LearningSession",
+      "description": "Tracks recent learning sessions across Learn, Practice, and Quiz modes.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "topicSlug": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z0-9\\-]+$"
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["learn", "practice", "quiz"]
+        },
+        "startedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "lastActivityAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "topicSlug", "mode", "startedAt", "lastActivityAt"]
+    },
+    "PracticeAttempt": {
+      "title": "PracticeAttempt",
+      "description": "Stores an evaluated practice exercise submission and feedback.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "topicSlug": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z0-9\\-]+$"
+        },
+        "difficulty": {
+          "type": "string",
+          "enum": ["beginner", "intermediate", "advanced"]
+        },
+        "taskTitle": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "taskInstructions": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "learnerAnswer": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8000
+        },
+        "evaluationResult": {
+          "type": "string",
+          "enum": ["correct", "partially_correct", "incorrect", "needs_clarification"]
+        },
+        "feedback": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "hint": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 1000
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "uid",
+        "topicSlug",
+        "difficulty",
+        "taskTitle",
+        "taskInstructions",
+        "learnerAnswer",
+        "evaluationResult",
+        "feedback",
+        "hint",
+        "createdAt"
+      ]
+    },
+    "QuizAttempt": {
+      "title": "QuizAttempt",
+      "description": "Stores a server-scored quiz attempt for a learner.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "quizId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "topicSlug": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z0-9\\-]+$"
+        },
+        "difficulty": {
+          "type": "string",
+          "enum": ["beginner", "intermediate", "advanced"]
+        },
+        "questionCount": {
+          "type": "integer"
+        },
+        "correctCount": {
+          "type": "integer"
+        },
+        "scorePercent": {
+          "type": "integer"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "uid",
+        "quizId",
+        "topicSlug",
+        "difficulty",
+        "questionCount",
+        "correctCount",
+        "scorePercent",
+        "createdAt"
+      ]
+    },
+    "TopicProgress": {
+      "title": "TopicProgress",
+      "description": "Aggregated learner progress per curriculum topic.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "topicSlug": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z0-9\\-]+$"
+        },
+        "lessonsViewed": {
+          "type": "integer"
+        },
+        "practiceAttemptsCount": {
+          "type": "integer"
+        },
+        "quizAttemptsCount": {
+          "type": "integer"
+        },
+        "bestScore": {
+          "type": "integer"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["not_started", "in_progress", "completed"]
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "uid",
+        "topicSlug",
+        "lessonsViewed",
+        "practiceAttemptsCount",
+        "quizAttemptsCount",
+        "bestScore",
+        "status",
+        "updatedAt"
+      ]
+    },
+    "QuizAnswerKey": {
+      "title": "QuizAnswerKey",
+      "description": "Server-only private quiz answer key record inaccessible to browser clients.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "topicSlug": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "difficulty": {
+          "type": "string",
+          "enum": ["beginner", "intermediate", "advanced"]
+        },
+        "questionCount": {
+          "type": "integer"
+        },
+        "submitted": {
+          "type": "boolean"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "topicSlug", "difficulty", "questionCount", "submitted", "expiresAt", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Private learner profile keyed by Firebase Auth UID."
+    },
+    "/users/{uid}/learningSessions/{sessionId}": {
+      "schema": { "$ref": "#/entities/LearningSession" },
+      "description": "Learner activity sessions for a user."
+    },
+    "/users/{uid}/practiceAttempts/{attemptId}": {
+      "schema": { "$ref": "#/entities/PracticeAttempt" },
+      "description": "Evaluated practice submissions owned by the user."
+    },
+    "/users/{uid}/quizAttempts/{attemptId}": {
+      "schema": { "$ref": "#/entities/QuizAttempt" },
+      "description": "Completed quiz attempts with server-computed scores."
+    },
+    "/users/{uid}/topicProgress/{topicSlug}": {
+      "schema": { "$ref": "#/entities/TopicProgress" },
+      "description": "Per-topic progress metrics for the user."
+    },
+    "/quizAnswerKeys/{quizId}": {
+      "schema": { "$ref": "#/entities/QuizAnswerKey" },
+      "description": "Server-only private quiz answer keys blocked from all client access."
+    }
+  }
+}
